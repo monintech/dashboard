@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amina Monae — Music Manager Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0f; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #1a0a2e 0%, #0d1117 100%); border-bottom: 1px solid #2a2a3a; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+  .header h1 span { color: #a855f7; }
+  .header .subtitle { font-size: 12px; color: #666; margin-top: 2px; }
+  .header .live-badge { background: #1a2a1a; border: 1px solid #2d5a2d; color: #4ade80; font-size: 11px; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
+  .live-dot { width: 7px; height: 7px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; padding: 24px 32px; }
+  .stat-card { background: #111118; border: 1px solid #1e1e2e; border-radius: 12px; padding: 20px; transition: border-color 0.2s; }
+  .stat-card:hover { border-color: #a855f7; }
+  .stat-card .label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .stat-card .value { font-size: 32px; font-weight: 700; color: #fff; }
+  .stat-card .sub { font-size: 11px; color: #a855f7; margin-top: 4px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; padding: 0 32px; border-bottom: 1px solid #1e1e2e; overflow-x: auto; }
+  .tab { padding: 12px 20px; font-size: 13px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .tab:hover { color: #ccc; }
+  .tab.active { color: #a855f7; border-bottom-color: #a855f7; }
+
+  /* Content */
+  .content { padding: 24px 32px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #1e1e2e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: #111118; }
+  th { padding: 12px 16px; text-align: left; color: #666; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #1e1e2e; white-space: nowrap; }
+  td { padding: 12px 16px; border-bottom: 1px solid #111118; vertical-align: top; max-width: 300px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #0f0f1a; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; display: block; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-green { background: #1a2a1a; color: #4ade80; border: 1px solid #2d5a2d; }
+  .badge-purple { background: #1e1030; color: #a855f7; border: 1px solid #4a2080; }
+  .badge-yellow { background: #2a2000; color: #fbbf24; border: 1px solid #5a4000; }
+  .badge-blue { background: #0a1a2a; color: #60a5fa; border: 1px solid #1a3a6a; }
+  .badge-red { background: #2a0a0a; color: #f87171; border: 1px solid #6a1a1a; }
+  .badge-gray { background: #1a1a1a; color: #888; border: 1px solid #333; }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .search { background: #111118; border: 1px solid #1e1e2e; border-radius: 8px; padding: 8px 14px; color: #e0e0e0; font-size: 13px; outline: none; width: 260px; }
+  .search:focus { border-color: #a855f7; }
+  .search::placeholder { color: #444; }
+  select.filter { background: #111118; border: 1px solid #1e1e2e; border-radius: 8px; padding: 8px 12px; color: #e0e0e0; font-size: 13px; outline: none; cursor: pointer; }
+  select.filter:focus { border-color: #a855f7; }
+  .count { margin-left: auto; font-size: 12px; color: #555; }
+
+  /* Loading */
+  .loading { text-align: center; padding: 60px; color: #444; }
+  .spinner { width: 32px; height: 32px; border: 3px solid #1e1e2e; border-top-color: #a855f7; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Platform icons */
+  .platform { display: flex; align-items: center; gap: 6px; }
+
+  /* Link */
+  a { color: #a855f7; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Empty */
+  .empty { text-align: center; padding: 48px; color: #444; font-size: 14px; }
+
+  /* Post preview card */
+  .post-preview { background: #111118; border: 1px solid #1e1e2e; border-radius: 8px; padding: 14px; font-size: 12px; line-height: 1.6; color: #bbb; max-width: 320px; white-space: pre-wrap; word-break: break-word; }
+
+  /* Refresh btn */
+  .btn { background: #1e1030; border: 1px solid #4a2080; color: #a855f7; font-size: 12px; padding: 7px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .btn:hover { background: #2a1a40; }
+
+  /* Scroll */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0a0f; }
+  ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Amina <span>Monae</span> — Music Manager</h1>
+    <div class="subtitle">Trust Nobody · R&B Soul · Release: April 1, 2026</div>
+  </div>
+  <div class="live-badge"><div class="live-dot"></div> Live Data</div>
+</div>
+
+<div class="stats" id="stats">
+  <div class="stat-card"><div class="label">Content Posts</div><div class="value" id="stat-content">—</div><div class="sub">ads + captions + rollout</div></div>
+  <div class="stat-card"><div class="label">Influencers</div><div class="value" id="stat-influencers">—</div><div class="sub">TikTok + Instagram</div></div>
+  <div class="stat-card"><div class="label">Playlists</div><div class="value" id="stat-playlists">—</div><div class="sub">curator leads</div></div>
+  <div class="stat-card"><div class="label">Articles</div><div class="value" id="stat-articles">—</div><div class="sub">editorials + press</div></div>
+  <div class="stat-card"><div class="label">Research</div><div class="value" id="stat-research">—</div><div class="sub">sources scraped</div></div>
+  <div class="stat-card"><div class="label">Promo Pages</div><div class="value" id="stat-promo">—</div><div class="sub">Instagram pages</div></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('content')">Content Calendar</div>
+  <div class="tab" onclick="switchTab('influencers')">Influencers</div>
+  <div class="tab" onclick="switchTab('playlists')">Playlists</div>
+  <div class="tab" onclick="switchTab('articles')">Articles & Press</div>
+  <div class="tab" onclick="switchTab('research')">Research</div>
+  <div class="tab" onclick="switchTab('promo')">Promo Pages</div>
+</div>
+
+<div class="content">
+
+  <!-- CONTENT CALENDAR -->
+  <div class="section active" id="section-content">
+    <div class="toolbar">
+      <input class="search" id="search-content" placeholder="Search content..." oninput="filterTable('content')">
+      <select class="filter" id="filter-content-platform" onchange="filterTable('content')">
+        <option value="">All Platforms</option>
+        <option>TikTok</option><option>Instagram</option><option>Instagram Stories</option><option>Twitter/X</option><option>ALL</option><option>meta</option><option>tiktok</option>
+      </select>
+      <select class="filter" id="filter-content-type" onchange="filterTable('content')">
+        <option value="">All Types</option>
+        <option>paid_ad</option><option>organic_post</option><option>30_day_strategy</option>
+      </select>
+      <button class="btn" onclick="loadAll()">↻ Refresh</button>
+      <div class="count" id="count-content"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Platform</th><th>Type</th><th>Goal</th><th>Status</th><th>Preview</th><th>Created</th></tr></thead>
+        <tbody id="tbody-content"><tr><td colspan="7"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- INFLUENCERS -->
+  <div class="section" id="section-influencers">
+    <div class="toolbar">
+      <input class="search" id="search-influencers" placeholder="Search influencers..." oninput="filterTable('influencers')">
+      <select class="filter" id="filter-influencers-platform" onchange="filterTable('influencers')">
+        <option value="">All Platforms</option>
+        <option>TikTok</option><option>Instagram</option><option>TikTok/Instagram</option>
+      </select>
+      <select class="filter" id="filter-influencers-status" onchange="filterTable('influencers')">
+        <option value="">All Status</option>
+        <option>discovered</option><option>contacted</option><option>confirmed</option><option>declined</option>
+      </select>
+      <div class="count" id="count-influencers"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Platform</th><th>Handle</th><th>Followers</th><th>Niche</th><th>Why Good Fit</th><th>Status</th></tr></thead>
+        <tbody id="tbody-influencers"><tr><td colspan="8"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PLAYLISTS -->
+  <div class="section" id="section-playlists">
+    <div class="toolbar">
+      <input class="search" id="search-playlists" placeholder="Search playlists..." oninput="filterTable('playlists')">
+      <select class="filter" id="filter-playlists-platform" onchange="filterTable('playlists')">
+        <option value="">All Platforms</option>
+        <option>Spotify</option><option>Various</option>
+      </select>
+      <div class="count" id="count-playlists"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Platform</th><th>Genre</th><th>Mood</th><th>Notes</th><th>Status</th><th>Link</th></tr></thead>
+        <tbody id="tbody-playlists"><tr><td colspan="8"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ARTICLES -->
+  <div class="section" id="section-articles">
+    <div class="toolbar">
+      <input class="search" id="search-articles" placeholder="Search articles..." oninput="filterTable('articles')">
+      <select class="filter" id="filter-articles-type" onchange="filterTable('articles')">
+        <option value="">All Types</option>
+        <option>editorial</option><option>press_release</option>
+      </select>
+      <select class="filter" id="filter-articles-status" onchange="filterTable('articles')">
+        <option value="">All Status</option>
+        <option>found</option><option>draft</option><option>ready</option><option>pitched</option><option>published</option>
+      </select>
+      <div class="count" id="count-articles"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Title</th><th>Publication</th><th>Type</th><th>Artist Mentioned</th><th>Status</th><th>Link</th></tr></thead>
+        <tbody id="tbody-articles"><tr><td colspan="7"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RESEARCH -->
+  <div class="section" id="section-research">
+    <div class="toolbar">
+      <input class="search" id="search-research" placeholder="Search research..." oninput="filterTable('research')">
+      <select class="filter" id="filter-research-topic" onchange="filterTable('research')">
+        <option value="">All Topics</option>
+        <option>ai_music_artist</option><option>fanbase_growth</option><option>music_ads</option><option>music_marketing</option><option>ugc_content</option>
+      </select>
+      <select class="filter" id="filter-research-source" onchange="filterTable('research')">
+        <option value="">All Sources</option>
+        <option>website</option><option>news</option><option>youtube</option><option>reddit</option>
+      </select>
+      <div class="count" id="count-research"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Title</th><th>Topic</th><th>Source</th><th>Summary</th><th>Author</th><th>Link</th></tr></thead>
+        <tbody id="tbody-research"><tr><td colspan="7"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PROMO PAGES -->
+  <div class="section" id="section-promo">
+    <div class="toolbar">
+      <input class="search" id="search-promo" placeholder="Search promo pages..." oninput="filterTable('promo')">
+      <div class="count" id="count-promo"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Platform</th><th>Handle</th><th>Followers</th><th>Niche</th><th>Why Good Fit</th><th>Status</th></tr></thead>
+        <tbody id="tbody-promo"><tr><td colspan="8"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SUPABASE_URL = 'https://itzgaxxfgbhxqthelxml.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0emdheHhmZ2JoeHF0aGVseG1sIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzM2ODMwMSwiZXhwIjoyMDg4OTQ0MzAxfQ.48ybXcbQQOUQJB7__55VtwyHxjXGlHXyAB-E0YGwiic';
+
+const data = { content: [], influencers: [], playlists: [], articles: [], research: [], promo: [] };
+
+async function fetchTable(table, query='') {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+  });
+  return r.json();
+}
+
+function statusBadge(s) {
+  const map = { draft:'badge-yellow', planned:'badge-blue', found:'badge-blue', ready:'badge-green',
+    pitched:'badge-purple', published:'badge-green', confirmed:'badge-green', contacted:'badge-purple',
+    discovered:'badge-gray', declined:'badge-red' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s||'—'}</span>`;
+}
+function platformBadge(p) {
+  const map = { TikTok:'badge-red', Instagram:'badge-purple', Spotify:'badge-green', meta:'badge-blue', tiktok:'badge-red', ALL:'badge-yellow' };
+  return `<span class="badge ${map[p]||'badge-gray'}">${p||'—'}</span>`;
+}
+function fmt(d) { return d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'; }
+function trunc(s, n=80) { if(!s) return '—'; return s.length>n ? s.slice(0,n)+'…' : s; }
+
+async function loadAll() {
+  const [content, influencers, playlists, articles, research, promo] = await Promise.all([
+    fetchTable('content_calendar', '?order=created_at.desc&limit=200'),
+    fetchTable('influencers', '?order=followers.desc.nullslast&limit=200'),
+    fetchTable('playlists', '?order=created_at.desc&limit=200'),
+    fetchTable('articles_tracker', '?order=created_at.desc&limit=200'),
+    fetchTable('research_sources', '?order=created_at.desc&limit=300'),
+    fetchTable('influencers', '?niche=eq.gossip page&limit=200') // promo pages via niche
+  ]);
+
+  // Also fetch promo_pages table
+  const promoPages = await fetchTable('promo_pages', '?order=created_at.desc&limit=200').catch(()=>[]);
+
+  data.content = Array.isArray(content) ? content : [];
+  data.influencers = Array.isArray(influencers) ? influencers.filter(i => i.niche !== 'gossip page') : [];
+  data.playlists = Array.isArray(playlists) ? playlists : [];
+  data.articles = Array.isArray(articles) ? articles : [];
+  data.research = Array.isArray(research) ? research : [];
+  data.promo = Array.isArray(promoPages) && promoPages.length > 0 ? promoPages :
+    (Array.isArray(promo) ? promo : []);
+
+  // Stats
+  document.getElementById('stat-content').textContent = data.content.length;
+  document.getElementById('stat-influencers').textContent = data.influencers.length;
+  document.getElementById('stat-playlists').textContent = data.playlists.length;
+  document.getElementById('stat-articles').textContent = data.articles.length;
+  document.getElementById('stat-research').textContent = data.research.length;
+  document.getElementById('stat-promo').textContent = data.promo.length;
+
+  renderAll();
+}
+
+function renderAll() {
+  renderContent(data.content);
+  renderInfluencers(data.influencers);
+  renderPlaylists(data.playlists);
+  renderArticles(data.articles);
+  renderResearch(data.research);
+  renderPromo(data.promo);
+}
+
+function filterTable(section) {
+  const q = (document.getElementById(`search-${section}`)?.value || '').toLowerCase();
+  let rows = data[section];
+
+  if (section === 'content') {
+    const p = document.getElementById('filter-content-platform')?.value;
+    const t = document.getElementById('filter-content-type')?.value;
+    if (p) rows = rows.filter(r => r.platform === p);
+    if (t) rows = rows.filter(r => r.content_type === t);
+  } else if (section === 'influencers') {
+    const p = document.getElementById('filter-influencers-platform')?.value;
+    const s = document.getElementById('filter-influencers-status')?.value;
+    if (p) rows = rows.filter(r => r.platform === p);
+    if (s) rows = rows.filter(r => r.status === s);
+  } else if (section === 'playlists') {
+    const p = document.getElementById('filter-playlists-platform')?.value;
+    if (p) rows = rows.filter(r => r.platform === p);
+  } else if (section === 'articles') {
+    const t = document.getElementById('filter-articles-type')?.value;
+    const s = document.getElementById('filter-articles-status')?.value;
+    if (t) rows = rows.filter(r => r.article_type === t);
+    if (s) rows = rows.filter(r => r.status === s);
+  } else if (section === 'research') {
+    const t = document.getElementById('filter-research-topic')?.value;
+    const s = document.getElementById('filter-research-source')?.value;
+    if (t) rows = rows.filter(r => r.topic === t);
+    if (s) rows = rows.filter(r => r.source_type === s);
+  }
+
+  if (q) rows = rows.filter(r => JSON.stringify(r).toLowerCase().includes(q));
+
+  const renders = { content: renderContent, influencers: renderInfluencers, playlists: renderPlaylists,
+    articles: renderArticles, research: renderResearch, promo: renderPromo };
+  renders[section](rows);
+}
+
+function renderContent(rows) {
+  const el = document.getElementById('tbody-content');
+  document.getElementById('count-content').textContent = `${rows.length} records`;
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="7"><div class="empty">No content found</div></td></tr>'; return; }
+  el.innerHTML = rows.map((r, i) => `<tr>
+    <td style="color:#555">${i+1}</td>
+    <td>${platformBadge(r.platform)}</td>
+    <td><span class="badge badge-gray">${r.content_type||'—'}</span></td>
+    <td style="color:#888">${r.goal||'—'}</td>
+    <td>${statusBadge(r.status)}</td>
+    <td><span class="truncate" title="${(r.caption||'').replace(/"/g,"'")}">${trunc(r.caption, 100)}</span></td>
+    <td style="color:#555">${fmt(r.created_at)}</td>
+  </tr>`).join('');
+}
+
+function renderInfluencers(rows) {
+  const el = document.getElementById('tbody-influencers');
+  document.getElementById('count-influencers').textContent = `${rows.length} records`;
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="8"><div class="empty">No influencers found</div></td></tr>'; return; }
+  el.innerHTML = rows.map((r, i) => `<tr>
+    <td style="color:#555">${i+1}</td>
+    <td style="font-weight:600;color:#e0e0e0">${r.name||'—'}</td>
+    <td>${platformBadge(r.platform)}</td>
+    <td style="color:#a855f7">${r.handle ? '@'+r.handle : '—'}</td>
+    <td style="color:#888">${r.followers ? Number(r.followers).toLocaleString() : '—'}</td>
+    <td><span class="truncate">${trunc(r.niche,40)}</span></td>
+    <td><span class="truncate" title="${(r.why_good_fit||'').replace(/"/g,"'")}">${trunc(r.why_good_fit,80)}</span></td>
+    <td>${statusBadge(r.status)}</td>
+  </tr>`).join('');
+}
+
+function renderPlaylists(rows) {
+  const el = document.getElementById('tbody-playlists');
+  document.getElementById('count-playlists').textContent = `${rows.length} records`;
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="8"><div class="empty">No playlists found</div></td></tr>'; return; }
+  el.innerHTML = rows.map((r, i) => `<tr>
+    <td style="color:#555">${i+1}</td>
+    <td><span class="truncate" style="font-weight:600;color:#e0e0e0">${trunc(r.name,60)}</span></td>
+    <td>${platformBadge(r.platform)}</td>
+    <td style="color:#888">${r.genre||'—'}</td>
+    <td style="color:#888">${r.mood||'—'}</td>
+    <td><span class="truncate" title="${(r.notes||'').replace(/"/g,"'")}">${trunc(r.notes,70)}</span></td>
+    <td>${statusBadge(r.status)}</td>
+    <td>${r.submission_url ? `<a href="${r.submission_url}" target="_blank">Submit ↗</a>` : '—'}</td>
+  </tr>`).join('');
+}
+
+function renderArticles(rows) {
+  const el = document.getElementById('tbody-articles');
+  document.getElementById('count-articles').textContent = `${rows.length} records`;
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="7"><div class="empty">No articles found</div></td></tr>'; return; }
+  el.innerHTML = rows.map((r, i) => `<tr>
+    <td style="color:#555">${i+1}</td>
+    <td><span class="truncate" style="font-weight:600;color:#e0e0e0" title="${(r.title||'').replace(/"/g,"'")}">${trunc(r.title,70)}</span></td>
+    <td style="color:#888">${r.publication||'—'}</td>
+    <td><span class="badge badge-gray">${r.article_type||'—'}</span></td>
+    <td style="color:#a855f7">${r.artist_mentioned||'—'}</td>
+    <td>${statusBadge(r.status)}</td>
+    <td>${r.url ? `<a href="${r.url}" target="_blank">View ↗</a>` : '—'}</td>
+  </tr>`).join('');
+}
+
+function renderResearch(rows) {
+  const el = document.getElementById('tbody-research');
+  document.getElementById('count-research').textContent = `${rows.length} records`;
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="7"><div class="empty">No research found</div></td></tr>'; return; }
+  el.innerHTML = rows.map((r, i) => `<tr>
+    <td style="color:#555">${i+1}</td>
+    <td><span class="truncate" title="${(r.title||'').replace(/"/g,"'")}" style="font-weight:600;color:#e0e0e0">${trunc(r.title,70)}</span></td>
+    <td><span class="badge badge-purple">${(r.topic||'—').replace(/_/g,' ')}</span></td>
+    <td><span class="badge badge-blue">${r.source_type||'—'}</span></td>
+    <td><span class="truncate" title="${(r.summary||'').replace(/"/g,"'")}">${trunc(r.summary,90)}</span></td>
+    <td style="color:#888">${trunc(r.author,30)}</td>
+    <td>${r.url ? `<a href="${r.url}" target="_blank">View ↗</a>` : '—'}</td>
+  </tr>`).join('');
+}
+
+function renderPromo(rows) {
+  const el = document.getElementById('tbody-promo');
+  document.getElementById('count-promo').textContent = `${rows.length} records`;
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="8"><div class="empty">No promo pages found</div></td></tr>'; return; }
+  el.innerHTML = rows.map((r, i) => `<tr>
+    <td style="color:#555">${i+1}</td>
+    <td style="font-weight:600;color:#e0e0e0">${r.name||'—'}</td>
+    <td>${platformBadge(r.platform)}</td>
+    <td style="color:#a855f7">${r.handle ? '@'+r.handle : '—'}</td>
+    <td style="color:#888">${r.followers ? Number(r.followers).toLocaleString() : '—'}</td>
+    <td><span class="truncate">${trunc(r.niche,40)}</span></td>
+    <td><span class="truncate" title="${(r.why_good_fit||'').replace(/"/g,"'")}">${trunc(r.why_good_fit,80)}</span></td>
+    <td>${statusBadge(r.status)}</td>
+  </tr>`).join('');
+}
+
+function switchTab(section) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const tabs = ['content','influencers','playlists','articles','research','promo'];
+    t.classList.toggle('active', tabs[i] === section);
+  });
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`section-${section}`).classList.add('active');
+}
+
+// Init
+loadAll();
+</script>
+</body>
+</html>
