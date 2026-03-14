@@ -6,7 +6,7 @@
 <title>Amina Monae — Music Manager Dashboard</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0a0a0f; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+  body { background: #0a0a0f; color: #e0e0e0; font-family: 'Segoe UI', -apple-system, sans-serif; min-height: 100vh; }
 
   /* Header */
   .header { background: linear-gradient(135deg, #1a0a2e 0%, #0d1117 100%); border-bottom: 1px solid #2a2a3a; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
@@ -18,16 +18,16 @@
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
   /* Stats */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; padding: 24px 32px; }
-  .stat-card { background: #111118; border: 1px solid #1e1e2e; border-radius: 12px; padding: 20px; transition: border-color 0.2s; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; padding: 24px 32px; }
+  .stat-card { background: #111118; border: 1px solid #1e1e2e; border-radius: 12px; padding: 18px; transition: border-color 0.2s; }
   .stat-card:hover { border-color: #a855f7; }
-  .stat-card .label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-  .stat-card .value { font-size: 32px; font-weight: 700; color: #fff; }
+  .stat-card .label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .stat-card .value { font-size: 30px; font-weight: 700; color: #fff; }
   .stat-card .sub { font-size: 11px; color: #a855f7; margin-top: 4px; }
 
   /* Tabs */
   .tabs { display: flex; gap: 2px; padding: 0 32px; border-bottom: 1px solid #1e1e2e; overflow-x: auto; }
-  .tab { padding: 12px 20px; font-size: 13px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .tab { padding: 12px 20px; font-size: 13px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; user-select: none; }
   .tab:hover { color: #ccc; }
   .tab.active { color: #a855f7; border-bottom-color: #a855f7; }
 
@@ -39,12 +39,12 @@
   /* Table */
   .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #1e1e2e; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead { background: #111118; }
+  thead { background: #111118; position: sticky; top: 0; z-index: 1; }
   th { padding: 12px 16px; text-align: left; color: #666; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #1e1e2e; white-space: nowrap; }
-  td { padding: 12px 16px; border-bottom: 1px solid #111118; vertical-align: top; max-width: 300px; }
+  td { padding: 12px 16px; border-bottom: 1px solid #111118; vertical-align: top; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #0f0f1a; }
-  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; display: block; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 280px; display: block; }
   .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
   .badge-green { background: #1a2a1a; color: #4ade80; border: 1px solid #2d5a2d; }
   .badge-purple { background: #1e1030; color: #a855f7; border: 1px solid #4a2080; }
@@ -67,27 +67,56 @@
   .spinner { width: 32px; height: 32px; border: 3px solid #1e1e2e; border-top-color: #a855f7; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Platform icons */
-  .platform { display: flex; align-items: center; gap: 6px; }
+  /* Error */
+  .error-msg { background: #2a0a0a; border: 1px solid #6a1a1a; color: #f87171; padding: 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
 
   /* Link */
   a { color: #a855f7; text-decoration: none; }
-  a:hover { text-decoration: underline; }
+  a:hover { text-decoration: underline; color: #c084fc; }
 
   /* Empty */
   .empty { text-align: center; padding: 48px; color: #444; font-size: 14px; }
-
-  /* Post preview card */
-  .post-preview { background: #111118; border: 1px solid #1e1e2e; border-radius: 8px; padding: 14px; font-size: 12px; line-height: 1.6; color: #bbb; max-width: 320px; white-space: pre-wrap; word-break: break-word; }
 
   /* Refresh btn */
   .btn { background: #1e1030; border: 1px solid #4a2080; color: #a855f7; font-size: 12px; padding: 7px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
   .btn:hover { background: #2a1a40; }
 
+  /* Tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { background: #1a1a2a; color: #888; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 1px solid #2a2a3a; }
+
+  /* Expandable caption */
+  .caption-cell { max-width: 350px; }
+  .caption-text { font-size: 12px; color: #bbb; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+  .caption-text.collapsed { max-height: 60px; overflow: hidden; position: relative; }
+  .caption-text.collapsed::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 24px; background: linear-gradient(transparent, #0a0a0f); }
+  .expand-btn { color: #a855f7; font-size: 11px; cursor: pointer; margin-top: 4px; display: inline-block; }
+  .expand-btn:hover { color: #c084fc; }
+
+  /* Profile link */
+  .profile-link { display: inline-flex; align-items: center; gap: 4px; color: #a855f7; }
+  .profile-link:hover { color: #c084fc; }
+
+  /* Score bar */
+  .score-bar { width: 50px; height: 6px; background: #1e1e2e; border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 4px; }
+  .score-fill { height: 100%; border-radius: 3px; }
+
   /* Scroll */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: #0a0a0f; }
   ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .header { padding: 16px; flex-direction: column; gap: 8px; align-items: flex-start; }
+    .stats { padding: 16px; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stat-card { padding: 12px; }
+    .stat-card .value { font-size: 22px; }
+    .content { padding: 16px; }
+    .tabs { padding: 0 16px; }
+    .search { width: 100%; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+  }
 </style>
 </head>
 <body>
@@ -95,18 +124,18 @@
 <div class="header">
   <div>
     <h1>Amina <span>Monae</span> — Music Manager</h1>
-    <div class="subtitle">Trust Nobody · R&B Soul · Release: April 1, 2026</div>
+    <div class="subtitle">Trust Nobody &middot; R&B Soul &middot; Release: April 1, 2026</div>
   </div>
   <div class="live-badge"><div class="live-dot"></div> Live Data</div>
 </div>
 
 <div class="stats" id="stats">
-  <div class="stat-card"><div class="label">Content Posts</div><div class="value" id="stat-content">—</div><div class="sub">ads + captions + rollout</div></div>
-  <div class="stat-card"><div class="label">Influencers</div><div class="value" id="stat-influencers">—</div><div class="sub">TikTok + Instagram</div></div>
-  <div class="stat-card"><div class="label">Playlists</div><div class="value" id="stat-playlists">—</div><div class="sub">curator leads</div></div>
-  <div class="stat-card"><div class="label">Articles</div><div class="value" id="stat-articles">—</div><div class="sub">editorials + press</div></div>
-  <div class="stat-card"><div class="label">Research</div><div class="value" id="stat-research">—</div><div class="sub">sources scraped</div></div>
-  <div class="stat-card"><div class="label">Promo Pages</div><div class="value" id="stat-promo">—</div><div class="sub">Instagram pages</div></div>
+  <div class="stat-card"><div class="label">Content Posts</div><div class="value" id="stat-content">--</div><div class="sub">ads + captions + rollout</div></div>
+  <div class="stat-card"><div class="label">Influencers</div><div class="value" id="stat-influencers">--</div><div class="sub">TikTok + Instagram</div></div>
+  <div class="stat-card"><div class="label">Playlists</div><div class="value" id="stat-playlists">--</div><div class="sub">curator leads</div></div>
+  <div class="stat-card"><div class="label">Articles</div><div class="value" id="stat-articles">--</div><div class="sub">editorials + press</div></div>
+  <div class="stat-card"><div class="label">Research</div><div class="value" id="stat-research">--</div><div class="sub">sources scraped</div></div>
+  <div class="stat-card"><div class="label">Promo Pages</div><div class="value" id="stat-promo">--</div><div class="sub">Instagram pages</div></div>
 </div>
 
 <div class="tabs">
@@ -126,19 +155,17 @@
       <input class="search" id="search-content" placeholder="Search content..." oninput="filterTable('content')">
       <select class="filter" id="filter-content-platform" onchange="filterTable('content')">
         <option value="">All Platforms</option>
-        <option>TikTok</option><option>Instagram</option><option>Instagram Stories</option><option>Twitter/X</option><option>ALL</option><option>meta</option><option>tiktok</option>
       </select>
       <select class="filter" id="filter-content-type" onchange="filterTable('content')">
         <option value="">All Types</option>
-        <option>paid_ad</option><option>organic_post</option><option>30_day_strategy</option>
       </select>
-      <button class="btn" onclick="loadAll()">↻ Refresh</button>
+      <button class="btn" onclick="loadAll()">Refresh</button>
       <div class="count" id="count-content"></div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Platform</th><th>Type</th><th>Goal</th><th>Status</th><th>Preview</th><th>Created</th></tr></thead>
-        <tbody id="tbody-content"><tr><td colspan="7"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+        <thead><tr><th>Day</th><th>Date</th><th>Platform</th><th>Type</th><th>Goal</th><th>Caption</th><th>Hashtags</th><th>Status</th></tr></thead>
+        <tbody id="tbody-content"><tr><td colspan="8"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
       </table>
     </div>
   </div>
@@ -149,11 +176,9 @@
       <input class="search" id="search-influencers" placeholder="Search influencers..." oninput="filterTable('influencers')">
       <select class="filter" id="filter-influencers-platform" onchange="filterTable('influencers')">
         <option value="">All Platforms</option>
-        <option>TikTok</option><option>Instagram</option><option>TikTok/Instagram</option>
       </select>
       <select class="filter" id="filter-influencers-status" onchange="filterTable('influencers')">
         <option value="">All Status</option>
-        <option>discovered</option><option>contacted</option><option>confirmed</option><option>declined</option>
       </select>
       <div class="count" id="count-influencers"></div>
     </div>
@@ -171,14 +196,13 @@
       <input class="search" id="search-playlists" placeholder="Search playlists..." oninput="filterTable('playlists')">
       <select class="filter" id="filter-playlists-platform" onchange="filterTable('playlists')">
         <option value="">All Platforms</option>
-        <option>Spotify</option><option>Various</option>
       </select>
       <div class="count" id="count-playlists"></div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Name</th><th>Platform</th><th>Genre</th><th>Mood</th><th>Notes</th><th>Status</th><th>Link</th></tr></thead>
-        <tbody id="tbody-playlists"><tr><td colspan="8"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+        <thead><tr><th>#</th><th>Name</th><th>Platform</th><th>Curator</th><th>Genre</th><th>Mood</th><th>Notes</th><th>Status</th><th>Links</th></tr></thead>
+        <tbody id="tbody-playlists"><tr><td colspan="9"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
       </table>
     </div>
   </div>
@@ -189,18 +213,16 @@
       <input class="search" id="search-articles" placeholder="Search articles..." oninput="filterTable('articles')">
       <select class="filter" id="filter-articles-type" onchange="filterTable('articles')">
         <option value="">All Types</option>
-        <option>editorial</option><option>press_release</option>
       </select>
       <select class="filter" id="filter-articles-status" onchange="filterTable('articles')">
         <option value="">All Status</option>
-        <option>found</option><option>draft</option><option>ready</option><option>pitched</option><option>published</option>
       </select>
       <div class="count" id="count-articles"></div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Title</th><th>Publication</th><th>Type</th><th>Artist Mentioned</th><th>Status</th><th>Link</th></tr></thead>
-        <tbody id="tbody-articles"><tr><td colspan="7"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+        <thead><tr><th>#</th><th>Title</th><th>Publication</th><th>Type</th><th>Artist</th><th>Notes</th><th>Status</th><th>Link</th></tr></thead>
+        <tbody id="tbody-articles"><tr><td colspan="8"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
       </table>
     </div>
   </div>
@@ -211,18 +233,16 @@
       <input class="search" id="search-research" placeholder="Search research..." oninput="filterTable('research')">
       <select class="filter" id="filter-research-topic" onchange="filterTable('research')">
         <option value="">All Topics</option>
-        <option>ai_music_artist</option><option>fanbase_growth</option><option>music_ads</option><option>music_marketing</option><option>ugc_content</option>
       </select>
       <select class="filter" id="filter-research-source" onchange="filterTable('research')">
         <option value="">All Sources</option>
-        <option>website</option><option>news</option><option>youtube</option><option>reddit</option>
       </select>
       <div class="count" id="count-research"></div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Title</th><th>Topic</th><th>Source</th><th>Summary</th><th>Author</th><th>Link</th></tr></thead>
-        <tbody id="tbody-research"><tr><td colspan="7"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+        <thead><tr><th>#</th><th>Title</th><th>Topic</th><th>Source</th><th>Summary</th><th>Score</th><th>Tags</th><th>Link</th></tr></thead>
+        <tbody id="tbody-research"><tr><td colspan="8"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
       </table>
     </div>
   </div>
@@ -231,12 +251,15 @@
   <div class="section" id="section-promo">
     <div class="toolbar">
       <input class="search" id="search-promo" placeholder="Search promo pages..." oninput="filterTable('promo')">
+      <select class="filter" id="filter-promo-type" onchange="filterTable('promo')">
+        <option value="">All Types</option>
+      </select>
       <div class="count" id="count-promo"></div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Name</th><th>Platform</th><th>Handle</th><th>Followers</th><th>Niche</th><th>Why Good Fit</th><th>Status</th></tr></thead>
-        <tbody id="tbody-promo"><tr><td colspan="8"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+        <thead><tr><th>#</th><th>Name</th><th>Platform</th><th>Handle</th><th>Type</th><th>Rate</th><th>Contact</th><th>Notes</th><th>Status</th><th>Profile</th></tr></thead>
+        <tbody id="tbody-promo"><tr><td colspan="10"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
       </table>
     </div>
   </div>
@@ -250,45 +273,127 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const data = { content: [], influencers: [], playlists: [], articles: [], research: [], promo: [] };
 
 async function fetchTable(table, query='') {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
-    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-  });
-  return r.json();
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    });
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    return await r.json();
+  } catch(e) {
+    console.error(`Failed to fetch ${table}:`, e);
+    return [];
+  }
 }
+
+function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function statusBadge(s) {
+  if (!s) return '<span class="badge badge-gray">--</span>';
   const map = { draft:'badge-yellow', planned:'badge-blue', found:'badge-blue', ready:'badge-green',
     pitched:'badge-purple', published:'badge-green', confirmed:'badge-green', contacted:'badge-purple',
-    discovered:'badge-gray', declined:'badge-red' };
-  return `<span class="badge ${map[s]||'badge-gray'}">${s||'—'}</span>`;
+    discovered:'badge-gray', declined:'badge-red', submitted:'badge-purple' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${esc(s)}</span>`;
 }
+
 function platformBadge(p) {
-  const map = { TikTok:'badge-red', Instagram:'badge-purple', Spotify:'badge-green', meta:'badge-blue', tiktok:'badge-red', ALL:'badge-yellow' };
-  return `<span class="badge ${map[p]||'badge-gray'}">${p||'—'}</span>`;
+  if (!p) return '<span class="badge badge-gray">--</span>';
+  const map = { TikTok:'badge-red', Instagram:'badge-purple', Spotify:'badge-green', meta:'badge-blue', tiktok:'badge-red', ALL:'badge-yellow', Various:'badge-gray' };
+  const key = Object.keys(map).find(k => p.toLowerCase().includes(k.toLowerCase()));
+  return `<span class="badge ${key ? map[key] : 'badge-gray'}">${esc(p)}</span>`;
 }
-function fmt(d) { return d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'; }
-function trunc(s, n=80) { if(!s) return '—'; return s.length>n ? s.slice(0,n)+'…' : s; }
+
+function fmt(d) { return d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '--'; }
+function trunc(s, n=80) { if(!s) return '--'; s = String(s); return s.length>n ? s.slice(0,n)+'...' : s; }
+
+function makeLink(url, label) {
+  if (!url) return '--';
+  url = String(url).trim();
+  if (!url.startsWith('http')) return esc(url);
+  return `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label || 'Open')} &#8599;</a>`;
+}
+
+function handleLink(handle, platform, profileUrl) {
+  if (!handle) return '--';
+  let h = String(handle).trim();
+  // Remove leading @ if present (data already has @)
+  let clean = h.startsWith('@') ? h.slice(1) : h;
+  let display = h.startsWith('@') ? h : '@' + h;
+
+  if (profileUrl) {
+    return `<a class="profile-link" href="${esc(profileUrl)}" target="_blank" rel="noopener">${esc(display)} &#8599;</a>`;
+  }
+
+  // Build profile URL from platform
+  let url = '';
+  let p = (platform || '').toLowerCase();
+  if (p.includes('tiktok')) url = `https://www.tiktok.com/@${clean}`;
+  else if (p.includes('instagram')) url = `https://www.instagram.com/${clean}/`;
+
+  if (url) return `<a class="profile-link" href="${esc(url)}" target="_blank" rel="noopener">${esc(display)} &#8599;</a>`;
+  return `<span style="color:#a855f7">${esc(display)}</span>`;
+}
+
+function renderTags(tags) {
+  if (!tags || !Array.isArray(tags) || !tags.length) return '--';
+  return `<div class="tags">${tags.slice(0,4).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>`;
+}
+
+function scoreBar(score) {
+  if (score == null) return '--';
+  let pct = Math.round(score * 100);
+  let color = pct >= 80 ? '#4ade80' : pct >= 50 ? '#fbbf24' : '#f87171';
+  return `${pct}% <div class="score-bar"><div class="score-fill" style="width:${pct}%;background:${color}"></div></div>`;
+}
+
+function captionCell(text, id) {
+  if (!text) return '--';
+  let safe = esc(text);
+  if (text.length <= 120) return `<div class="caption-text">${safe}</div>`;
+  return `<div class="caption-cell">
+    <div class="caption-text collapsed" id="cap-${id}">${safe}</div>
+    <span class="expand-btn" onclick="toggleCaption('cap-${id}', this)">Show more</span>
+  </div>`;
+}
+
+function toggleCaption(id, btn) {
+  let el = document.getElementById(id);
+  if (el.classList.contains('collapsed')) {
+    el.classList.remove('collapsed');
+    btn.textContent = 'Show less';
+  } else {
+    el.classList.add('collapsed');
+    btn.textContent = 'Show more';
+  }
+}
+
+function populateFilter(selectId, values) {
+  let sel = document.getElementById(selectId);
+  if (!sel) return;
+  let existing = new Set([...sel.options].map(o => o.value));
+  values.filter(v => v && !existing.has(v)).forEach(v => {
+    let opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    sel.appendChild(opt);
+  });
+}
 
 async function loadAll() {
-  const [content, influencers, playlists, articles, research, promo] = await Promise.all([
-    fetchTable('content_calendar', '?order=created_at.desc&limit=200'),
-    fetchTable('influencers', '?order=followers.desc.nullslast&limit=200'),
-    fetchTable('playlists', '?order=created_at.desc&limit=200'),
-    fetchTable('articles_tracker', '?order=created_at.desc&limit=200'),
-    fetchTable('research_sources', '?order=created_at.desc&limit=300'),
-    fetchTable('influencers', '?niche=eq.gossip page&limit=200') // promo pages via niche
+  const [content, influencers, playlists, articles, research, promoPages] = await Promise.all([
+    fetchTable('content_calendar', '?order=day.asc,created_at.desc&limit=500'),
+    fetchTable('influencers', '?order=followers.desc.nullslast&limit=500'),
+    fetchTable('playlists', '?order=created_at.desc&limit=500'),
+    fetchTable('articles_tracker', '?order=created_at.desc&limit=500'),
+    fetchTable('research_sources', '?order=created_at.desc&limit=500'),
+    fetchTable('promo_pages', '?order=created_at.desc&limit=500')
   ]);
 
-  // Also fetch promo_pages table
-  const promoPages = await fetchTable('promo_pages', '?order=created_at.desc&limit=200').catch(()=>[]);
-
   data.content = Array.isArray(content) ? content : [];
-  data.influencers = Array.isArray(influencers) ? influencers.filter(i => i.niche !== 'gossip page') : [];
+  data.influencers = Array.isArray(influencers) ? influencers : [];
   data.playlists = Array.isArray(playlists) ? playlists : [];
   data.articles = Array.isArray(articles) ? articles : [];
   data.research = Array.isArray(research) ? research : [];
-  data.promo = Array.isArray(promoPages) && promoPages.length > 0 ? promoPages :
-    (Array.isArray(promo) ? promo : []);
+  data.promo = Array.isArray(promoPages) ? promoPages : [];
 
   // Stats
   document.getElementById('stat-content').textContent = data.content.length;
@@ -297,6 +402,18 @@ async function loadAll() {
   document.getElementById('stat-articles').textContent = data.articles.length;
   document.getElementById('stat-research').textContent = data.research.length;
   document.getElementById('stat-promo').textContent = data.promo.length;
+
+  // Populate filter dropdowns dynamically from data
+  populateFilter('filter-content-platform', [...new Set(data.content.map(r => r.platform))]);
+  populateFilter('filter-content-type', [...new Set(data.content.map(r => r.content_type))]);
+  populateFilter('filter-influencers-platform', [...new Set(data.influencers.map(r => r.platform))]);
+  populateFilter('filter-influencers-status', [...new Set(data.influencers.map(r => r.status))]);
+  populateFilter('filter-playlists-platform', [...new Set(data.playlists.map(r => r.platform))]);
+  populateFilter('filter-articles-type', [...new Set(data.articles.map(r => r.article_type))]);
+  populateFilter('filter-articles-status', [...new Set(data.articles.map(r => r.status))]);
+  populateFilter('filter-research-topic', [...new Set(data.research.map(r => r.topic))]);
+  populateFilter('filter-research-source', [...new Set(data.research.map(r => r.source_type))]);
+  populateFilter('filter-promo-type', [...new Set(data.promo.map(r => r.page_type))]);
 
   renderAll();
 }
@@ -312,7 +429,7 @@ function renderAll() {
 
 function filterTable(section) {
   const q = (document.getElementById(`search-${section}`)?.value || '').toLowerCase();
-  let rows = data[section];
+  let rows = [...data[section]];
 
   if (section === 'content') {
     const p = document.getElementById('filter-content-platform')?.value;
@@ -337,6 +454,9 @@ function filterTable(section) {
     const s = document.getElementById('filter-research-source')?.value;
     if (t) rows = rows.filter(r => r.topic === t);
     if (s) rows = rows.filter(r => r.source_type === s);
+  } else if (section === 'promo') {
+    const t = document.getElementById('filter-promo-type')?.value;
+    if (t) rows = rows.filter(r => r.page_type === t);
   }
 
   if (q) rows = rows.filter(r => JSON.stringify(r).toLowerCase().includes(q));
@@ -349,15 +469,16 @@ function filterTable(section) {
 function renderContent(rows) {
   const el = document.getElementById('tbody-content');
   document.getElementById('count-content').textContent = `${rows.length} records`;
-  if (!rows.length) { el.innerHTML = '<tr><td colspan="7"><div class="empty">No content found</div></td></tr>'; return; }
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="8"><div class="empty">No content found</div></td></tr>'; return; }
   el.innerHTML = rows.map((r, i) => `<tr>
-    <td style="color:#555">${i+1}</td>
+    <td style="font-weight:600;color:#fff;text-align:center">${r.day || '--'}</td>
+    <td style="color:#888;white-space:nowrap">${r.date ? fmt(r.date) : '--'}</td>
     <td>${platformBadge(r.platform)}</td>
-    <td><span class="badge badge-gray">${r.content_type||'—'}</span></td>
-    <td style="color:#888">${r.goal||'—'}</td>
+    <td><span class="badge badge-blue">${esc(r.content_type)||'--'}</span></td>
+    <td style="color:#888">${esc(r.goal)||'--'}</td>
+    <td class="caption-cell">${captionCell(r.caption, 'c'+i)}</td>
+    <td>${renderTags(r.hashtags)}</td>
     <td>${statusBadge(r.status)}</td>
-    <td><span class="truncate" title="${(r.caption||'').replace(/"/g,"'")}">${trunc(r.caption, 100)}</span></td>
-    <td style="color:#555">${fmt(r.created_at)}</td>
   </tr>`).join('');
 }
 
@@ -367,12 +488,12 @@ function renderInfluencers(rows) {
   if (!rows.length) { el.innerHTML = '<tr><td colspan="8"><div class="empty">No influencers found</div></td></tr>'; return; }
   el.innerHTML = rows.map((r, i) => `<tr>
     <td style="color:#555">${i+1}</td>
-    <td style="font-weight:600;color:#e0e0e0">${r.name||'—'}</td>
+    <td style="font-weight:600;color:#e0e0e0">${esc(r.name)||'--'}</td>
     <td>${platformBadge(r.platform)}</td>
-    <td style="color:#a855f7">${r.handle ? '@'+r.handle : '—'}</td>
-    <td style="color:#888">${r.followers ? Number(r.followers).toLocaleString() : '—'}</td>
-    <td><span class="truncate">${trunc(r.niche,40)}</span></td>
-    <td><span class="truncate" title="${(r.why_good_fit||'').replace(/"/g,"'")}">${trunc(r.why_good_fit,80)}</span></td>
+    <td>${handleLink(r.handle, r.platform, r.profile_url)}</td>
+    <td style="color:#fff;font-weight:600">${r.followers ? Number(r.followers).toLocaleString() : '--'}</td>
+    <td><span class="truncate">${esc(trunc(r.niche,50))}</span></td>
+    <td><span class="truncate" title="${esc(r.why_good_fit)}">${esc(trunc(r.why_good_fit,80))}</span></td>
     <td>${statusBadge(r.status)}</td>
   </tr>`).join('');
 }
@@ -380,62 +501,67 @@ function renderInfluencers(rows) {
 function renderPlaylists(rows) {
   const el = document.getElementById('tbody-playlists');
   document.getElementById('count-playlists').textContent = `${rows.length} records`;
-  if (!rows.length) { el.innerHTML = '<tr><td colspan="8"><div class="empty">No playlists found</div></td></tr>'; return; }
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="9"><div class="empty">No playlists found</div></td></tr>'; return; }
   el.innerHTML = rows.map((r, i) => `<tr>
     <td style="color:#555">${i+1}</td>
-    <td><span class="truncate" style="font-weight:600;color:#e0e0e0">${trunc(r.name,60)}</span></td>
+    <td style="max-width:250px"><span class="truncate" style="font-weight:600;color:#e0e0e0">${esc(trunc(r.name,70))}</span></td>
     <td>${platformBadge(r.platform)}</td>
-    <td style="color:#888">${r.genre||'—'}</td>
-    <td style="color:#888">${r.mood||'—'}</td>
-    <td><span class="truncate" title="${(r.notes||'').replace(/"/g,"'")}">${trunc(r.notes,70)}</span></td>
+    <td style="color:#888">${esc(r.curator)||'--'}</td>
+    <td style="color:#888">${esc(r.genre)||'--'}</td>
+    <td style="color:#888">${esc(r.mood)||'--'}</td>
+    <td style="max-width:200px"><span class="truncate" title="${esc(r.notes)}">${esc(trunc(r.notes,60))}</span></td>
     <td>${statusBadge(r.status)}</td>
-    <td>${r.submission_url ? `<a href="${r.submission_url}" target="_blank">Submit ↗</a>` : '—'}</td>
+    <td style="white-space:nowrap">${r.submission_url ? makeLink(r.submission_url, 'Submit') : ''}${r.playlist_url && r.playlist_url !== r.submission_url ? ' ' + makeLink(r.playlist_url, 'View') : ''}</td>
   </tr>`).join('');
 }
 
 function renderArticles(rows) {
   const el = document.getElementById('tbody-articles');
   document.getElementById('count-articles').textContent = `${rows.length} records`;
-  if (!rows.length) { el.innerHTML = '<tr><td colspan="7"><div class="empty">No articles found</div></td></tr>'; return; }
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="8"><div class="empty">No articles found</div></td></tr>'; return; }
   el.innerHTML = rows.map((r, i) => `<tr>
     <td style="color:#555">${i+1}</td>
-    <td><span class="truncate" style="font-weight:600;color:#e0e0e0" title="${(r.title||'').replace(/"/g,"'")}">${trunc(r.title,70)}</span></td>
-    <td style="color:#888">${r.publication||'—'}</td>
-    <td><span class="badge badge-gray">${r.article_type||'—'}</span></td>
-    <td style="color:#a855f7">${r.artist_mentioned||'—'}</td>
+    <td style="max-width:280px">${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" style="font-weight:600">${esc(trunc(r.title,70))} &#8599;</a>` : `<span style="font-weight:600;color:#e0e0e0">${esc(trunc(r.title,70))}</span>`}</td>
+    <td style="color:#888">${esc(r.publication)||'--'}</td>
+    <td><span class="badge badge-blue">${esc(r.article_type)||'--'}</span></td>
+    <td style="color:#a855f7">${esc(r.artist_mentioned)||'--'}</td>
+    <td style="max-width:200px"><span class="truncate" title="${esc(r.notes)}">${esc(trunc(r.notes,60))}</span></td>
     <td>${statusBadge(r.status)}</td>
-    <td>${r.url ? `<a href="${r.url}" target="_blank">View ↗</a>` : '—'}</td>
+    <td>${makeLink(r.url, 'Read')}</td>
   </tr>`).join('');
 }
 
 function renderResearch(rows) {
   const el = document.getElementById('tbody-research');
   document.getElementById('count-research').textContent = `${rows.length} records`;
-  if (!rows.length) { el.innerHTML = '<tr><td colspan="7"><div class="empty">No research found</div></td></tr>'; return; }
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="8"><div class="empty">No research found</div></td></tr>'; return; }
   el.innerHTML = rows.map((r, i) => `<tr>
     <td style="color:#555">${i+1}</td>
-    <td><span class="truncate" title="${(r.title||'').replace(/"/g,"'")}" style="font-weight:600;color:#e0e0e0">${trunc(r.title,70)}</span></td>
-    <td><span class="badge badge-purple">${(r.topic||'—').replace(/_/g,' ')}</span></td>
-    <td><span class="badge badge-blue">${r.source_type||'—'}</span></td>
-    <td><span class="truncate" title="${(r.summary||'').replace(/"/g,"'")}">${trunc(r.summary,90)}</span></td>
-    <td style="color:#888">${trunc(r.author,30)}</td>
-    <td>${r.url ? `<a href="${r.url}" target="_blank">View ↗</a>` : '—'}</td>
+    <td style="max-width:280px">${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" style="font-weight:600">${esc(trunc(r.title,70))} &#8599;</a>` : `<span style="font-weight:600;color:#e0e0e0">${esc(trunc(r.title,70))}</span>`}</td>
+    <td><span class="badge badge-purple">${esc((r.topic||'--').replace(/_/g,' '))}</span></td>
+    <td><span class="badge badge-blue">${esc(r.source_type)||'--'}</span></td>
+    <td style="max-width:250px"><span class="truncate" title="${esc(r.summary)}">${esc(trunc(r.summary,90))}</span></td>
+    <td>${scoreBar(r.relevance_score)}</td>
+    <td>${renderTags(r.tags)}</td>
+    <td>${makeLink(r.url, 'Read')}</td>
   </tr>`).join('');
 }
 
 function renderPromo(rows) {
   const el = document.getElementById('tbody-promo');
   document.getElementById('count-promo').textContent = `${rows.length} records`;
-  if (!rows.length) { el.innerHTML = '<tr><td colspan="8"><div class="empty">No promo pages found</div></td></tr>'; return; }
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="10"><div class="empty">No promo pages found</div></td></tr>'; return; }
   el.innerHTML = rows.map((r, i) => `<tr>
     <td style="color:#555">${i+1}</td>
-    <td style="font-weight:600;color:#e0e0e0">${r.name||'—'}</td>
+    <td style="font-weight:600;color:#e0e0e0">${esc(r.name)||'--'}</td>
     <td>${platformBadge(r.platform)}</td>
-    <td style="color:#a855f7">${r.handle ? '@'+r.handle : '—'}</td>
-    <td style="color:#888">${r.followers ? Number(r.followers).toLocaleString() : '—'}</td>
-    <td><span class="truncate">${trunc(r.niche,40)}</span></td>
-    <td><span class="truncate" title="${(r.why_good_fit||'').replace(/"/g,"'")}">${trunc(r.why_good_fit,80)}</span></td>
+    <td>${handleLink(r.handle, r.platform, r.profile_url)}</td>
+    <td><span class="badge badge-gray">${esc(r.page_type)||'--'}</span></td>
+    <td style="color:#fbbf24">${r.promo_rate ? '$'+esc(r.promo_rate) : '--'}</td>
+    <td style="color:#888">${esc(r.contact)||'--'}</td>
+    <td style="max-width:200px"><span class="truncate" title="${esc(r.notes)}">${esc(trunc(r.notes,60))}</span></td>
     <td>${statusBadge(r.status)}</td>
+    <td>${makeLink(r.profile_url, 'Profile')}</td>
   </tr>`).join('');
 }
 
