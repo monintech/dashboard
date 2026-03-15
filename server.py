@@ -8,6 +8,7 @@ import gzip
 PORT = int(os.environ.get("PORT", 8080))
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://itzgaxxfgbhxqthelxml.supabase.co")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0emdheHhmZ2JoeHF0aGVseG1sIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzM2ODMwMSwiZXhwIjoyMDg4OTQ0MzAxfQ.48ybXcbQQOUQJB7__55VtwyHxjXGlHXyAB-E0YGwiic")
+BRAVE_API_KEY = os.environ.get("BRAVE_API_KEY", "")
 
 def fetch_table(table, query=""):
     url = f"{SUPABASE_URL}/rest/v1/{table}{query}"
@@ -77,6 +78,34 @@ def build_context():
     return "\n".join(lines)
 
 
+def live_search(query, count=10):
+    if not BRAVE_API_KEY:
+        return {"error": "BRAVE_API_KEY not set"}
+    params = urllib.parse.urlencode({"q": query, "count": count, "search_lang": "en"})
+    url = f"https://api.search.brave.com/res/v1/web/search?{params}"
+    req = urllib.request.Request(url, headers={
+        "Accept": "application/json",
+        "Accept-Encoding": "gzip",
+        "X-Subscription-Token": BRAVE_API_KEY,
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            raw = resp.read()
+            try:
+                raw = gzip.decompress(raw)
+            except Exception:
+                pass
+            data = json.loads(raw.decode())
+        results = []
+        for r in data.get("web", {}).get("results", []):
+            results.append({"title": r.get("title"), "url": r.get("url"), "description": r.get("description")})
+        for r in data.get("news", {}).get("results", []):
+            results.append({"title": r.get("title"), "url": r.get("url"), "description": r.get("description"), "type": "news"})
+        return {"query": query, "results": results}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/context" or self.path == "/memory":
@@ -84,6 +113,23 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             body = context.encode()
             self.send_response(200)
             self.send_header("Content-Type", "text/markdown; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path.startswith("/api/search"):
+            parsed = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(parsed.query)
+            query = params.get("q", [""])[0]
+            count = int(params.get("count", ["10"])[0])
+            if not query:
+                body = json.dumps({"error": "Missing ?q= parameter"}).encode()
+                self.send_response(400)
+            else:
+                data = live_search(query, count)
+                body = json.dumps(data, ensure_ascii=False).encode()
+                self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
