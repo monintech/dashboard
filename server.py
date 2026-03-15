@@ -1,4 +1,5 @@
 import http.server
+import socketserver
 import os
 import json
 import urllib.request
@@ -141,5 +142,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+class ThreadingServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+    daemon_threads = True
+
 print(f"Dashboard running on port {PORT}")
-http.server.HTTPServer(("", PORT), Handler).serve_forever()
+ThreadingServer(("", PORT), Handler).serve_forever()
