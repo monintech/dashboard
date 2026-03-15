@@ -136,6 +136,7 @@
   <div class="stat-card"><div class="label">Articles</div><div class="value" id="stat-articles">--</div><div class="sub">editorials + press</div></div>
   <div class="stat-card"><div class="label">Research</div><div class="value" id="stat-research">--</div><div class="sub">sources scraped</div></div>
   <div class="stat-card"><div class="label">Promo Pages</div><div class="value" id="stat-promo">--</div><div class="sub">Instagram pages</div></div>
+  <div class="stat-card" style="border-color:#4a2080"><div class="label">Ad Campaigns</div><div class="value" id="stat-ads">--</div><div class="sub" id="stat-ads-budget">$0/day budget</div></div>
 </div>
 
 <div class="tabs">
@@ -145,6 +146,7 @@
   <div class="tab" onclick="switchTab('articles')">Articles & Press</div>
   <div class="tab" onclick="switchTab('research')">Research</div>
   <div class="tab" onclick="switchTab('promo')">Promo Pages</div>
+  <div class="tab" onclick="switchTab('ads')">Ad Campaigns</div>
 </div>
 
 <div class="content">
@@ -247,6 +249,26 @@
     </div>
   </div>
 
+  <!-- AD CAMPAIGNS -->
+  <div class="section" id="section-ads">
+    <div class="toolbar">
+      <input class="search" id="search-ads" placeholder="Search campaigns..." oninput="filterTable('ads')">
+      <select class="filter" id="filter-ads-platform" onchange="filterTable('ads')">
+        <option value="">All Platforms</option>
+      </select>
+      <select class="filter" id="filter-ads-status" onchange="filterTable('ads')">
+        <option value="">All Status</option>
+      </select>
+      <div class="count" id="count-ads"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Campaign</th><th>Platform</th><th>Objective</th><th>Budget/Day</th><th>Audience</th><th>Spend</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Dates</th><th>Status</th></tr></thead>
+        <tbody id="tbody-ads"><tr><td colspan="12"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- PROMO PAGES -->
   <div class="section" id="section-promo">
     <div class="toolbar">
@@ -270,7 +292,7 @@
 const SUPABASE_URL = 'https://itzgaxxfgbhxqthelxml.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0emdheHhmZ2JoeHF0aGVseG1sIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzM2ODMwMSwiZXhwIjoyMDg4OTQ0MzAxfQ.48ybXcbQQOUQJB7__55VtwyHxjXGlHXyAB-E0YGwiic';
 
-const data = { content: [], influencers: [], playlists: [], articles: [], research: [], promo: [] };
+const data = { content: [], influencers: [], playlists: [], articles: [], research: [], promo: [], ads: [] };
 
 async function fetchTable(table, query='') {
   try {
@@ -379,13 +401,14 @@ function populateFilter(selectId, values) {
 }
 
 async function loadAll() {
-  const [content, influencers, playlists, articles, research, promoPages] = await Promise.all([
+  const [content, influencers, playlists, articles, research, promoPages, adCampaigns] = await Promise.all([
     fetchTable('content_calendar', '?order=day.asc,created_at.desc&limit=500'),
     fetchTable('influencers', '?order=followers.desc.nullslast&limit=500'),
     fetchTable('playlists', '?order=created_at.desc&limit=500'),
     fetchTable('articles_tracker', '?order=created_at.desc&limit=500'),
     fetchTable('research_sources', '?order=created_at.desc&limit=500'),
-    fetchTable('promo_pages', '?order=created_at.desc&limit=500')
+    fetchTable('promo_pages', '?order=created_at.desc&limit=500'),
+    fetchTable('ad_campaigns', '?order=created_at.desc&limit=500')
   ]);
 
   data.content = Array.isArray(content) ? content : [];
@@ -394,6 +417,7 @@ async function loadAll() {
   data.articles = Array.isArray(articles) ? articles : [];
   data.research = Array.isArray(research) ? research : [];
   data.promo = Array.isArray(promoPages) ? promoPages : [];
+  data.ads = Array.isArray(adCampaigns) ? adCampaigns : [];
 
   // Stats
   document.getElementById('stat-content').textContent = data.content.length;
@@ -402,6 +426,9 @@ async function loadAll() {
   document.getElementById('stat-articles').textContent = data.articles.length;
   document.getElementById('stat-research').textContent = data.research.length;
   document.getElementById('stat-promo').textContent = data.promo.length;
+  document.getElementById('stat-ads').textContent = data.ads.length;
+  let totalBudget = data.ads.reduce((s,c) => s + (Number(c.daily_budget)||0), 0);
+  document.getElementById('stat-ads-budget').textContent = `$${totalBudget}/day budget`;
 
   // Populate filter dropdowns dynamically from data
   populateFilter('filter-content-platform', [...new Set(data.content.map(r => r.platform))]);
@@ -414,6 +441,8 @@ async function loadAll() {
   populateFilter('filter-research-topic', [...new Set(data.research.map(r => r.topic))]);
   populateFilter('filter-research-source', [...new Set(data.research.map(r => r.source_type))]);
   populateFilter('filter-promo-type', [...new Set(data.promo.map(r => r.page_type))]);
+  populateFilter('filter-ads-platform', [...new Set(data.ads.map(r => r.platform))]);
+  populateFilter('filter-ads-status', [...new Set(data.ads.map(r => r.status))]);
 
   renderAll();
 }
@@ -425,6 +454,7 @@ function renderAll() {
   renderArticles(data.articles);
   renderResearch(data.research);
   renderPromo(data.promo);
+  renderAds(data.ads);
 }
 
 function filterTable(section) {
@@ -457,12 +487,17 @@ function filterTable(section) {
   } else if (section === 'promo') {
     const t = document.getElementById('filter-promo-type')?.value;
     if (t) rows = rows.filter(r => r.page_type === t);
+  } else if (section === 'ads') {
+    const p = document.getElementById('filter-ads-platform')?.value;
+    const s = document.getElementById('filter-ads-status')?.value;
+    if (p) rows = rows.filter(r => r.platform === p);
+    if (s) rows = rows.filter(r => r.status === s);
   }
 
   if (q) rows = rows.filter(r => JSON.stringify(r).toLowerCase().includes(q));
 
   const renders = { content: renderContent, influencers: renderInfluencers, playlists: renderPlaylists,
-    articles: renderArticles, research: renderResearch, promo: renderPromo };
+    articles: renderArticles, research: renderResearch, promo: renderPromo, ads: renderAds };
   renders[section](rows);
 }
 
@@ -565,9 +600,31 @@ function renderPromo(rows) {
   </tr>`).join('');
 }
 
+function renderAds(rows) {
+  const el = document.getElementById('tbody-ads');
+  document.getElementById('count-ads').textContent = `${rows.length} campaigns`;
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="12"><div class="empty">No campaigns found</div></td></tr>'; return; }
+  el.innerHTML = rows.map((r, i) => {
+    let objBadge = {video_views:'badge-blue',traffic:'badge-green',conversions:'badge-purple'}[r.objective] || 'badge-gray';
+    return `<tr>
+    <td style="color:#555">${i+1}</td>
+    <td style="font-weight:600;color:#e0e0e0;max-width:220px">${esc(r.campaign_name)}</td>
+    <td>${platformBadge(r.platform)}</td>
+    <td><span class="badge ${objBadge}">${esc(r.objective)||'--'}</span></td>
+    <td style="color:#4ade80;font-weight:700">$${r.daily_budget||0}/day</td>
+    <td style="max-width:220px"><span class="truncate" title="${esc(r.audience_name)}">${esc(trunc(r.audience_name,60))}</span><br><span class="badge badge-gray" style="margin-top:2px">${esc(r.audience_type)||'--'}</span></td>
+    <td style="color:#fbbf24">${r.spend_total ? '$'+Number(r.spend_total).toLocaleString() : '$0'}</td>
+    <td style="color:#888">${r.impressions ? Number(r.impressions).toLocaleString() : '0'}</td>
+    <td style="color:#888">${r.clicks ? Number(r.clicks).toLocaleString() : '0'}</td>
+    <td style="color:#60a5fa">${r.ctr ? r.ctr+'%' : '0%'}</td>
+    <td style="color:#555;white-space:nowrap">${r.start_date ? fmt(r.start_date) : '--'} - ${r.end_date ? fmt(r.end_date) : '--'}</td>
+    <td>${statusBadge(r.status)}</td>
+  </tr>`;}).join('');
+}
+
 function switchTab(section) {
   document.querySelectorAll('.tab').forEach((t,i) => {
-    const tabs = ['content','influencers','playlists','articles','research','promo'];
+    const tabs = ['content','influencers','playlists','articles','research','promo','ads'];
     t.classList.toggle('active', tabs[i] === section);
   });
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
